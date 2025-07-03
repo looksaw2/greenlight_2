@@ -11,7 +11,18 @@ func (app *Application) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "client ip unknown, to avoid this , it must be valid url", http.StatusBadRequest)
 		return
 	}
-	w.Write([]byte("App is health"))
+	data := envelope{
+		"status": "available",
+		"system_info": map[string]any{
+			"environment": app.Config.env,
+			"version":     VERSION,
+		},
+	}
+	err = app.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.Logger.Print(err)
+		http.Error(w, "Write JSON error", http.StatusInternalServerError)
+	}
 	app.Logger.Printf("client ip :%s\n", client_ip)
 	app.Logger.Printf("visit is HealthCheck\n")
 }
