@@ -2,7 +2,16 @@
 GET http://localhost:8080/api/v1/health
 
 ### Get Movie Information
-GET http://localhost:8080/api/v1/create_movie
+POST http://localhost:8080/api/v1/create_movie
+Content-Type: application/json
+
+{
+    "title" : "This is about test",
+    "year" :  2025,
+    "runtime" :  "129 mins",
+    "genres" : ["romantics","action"]
+
+}
 
 ### Get Movie Information With id 1
 GET http://localhost:8080/api/v1/show_movie/1
