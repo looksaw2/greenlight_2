@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/looksaw/greenlight_2/internal/data"
 )
 
 const VERSION = "1.0.0"
@@ -29,6 +30,7 @@ type Config struct {
 type Application struct {
 	Config Config
 	Logger *log.Logger
+	Models data.Models
 }
 
 func ApiInit() *Application {
@@ -56,6 +58,7 @@ func (app *Application) RunHTTP() {
 	}
 	app.Logger.Printf("connect to database ..............\n")
 	defer db.Close()
+	app.Models = data.NewModel(db)
 	app.Logger.Printf("Server start to run on port :%d", app.Config.port)
 	srv := http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Config.port),
