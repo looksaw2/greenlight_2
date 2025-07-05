@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15  # 推荐指定版本（如 13, 14, 15）
+    container_name: greenlight_container
+    environment:
+      POSTGRES_USER: greenlight_2      # 自定义用户名
+      POSTGRES_PASSWORD: greenlight_2  # 自定义密码
+      POSTGRES_DB: greenlight_2    # 初始创建的数据库名
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # 持久化数据
+    ports:
+      - "5432:5432"  # 主机端口:容器端口
+    restart: unless-stopped  # 容器退出时自动重启
+
+volumes:
+  postgres_data:  # 声明数据卷，避免容器删除后数据丢失
