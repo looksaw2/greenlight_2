@@ -1,8 +1,22 @@
 version: '3.8'
 
 services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"  # 主机端口:容器端口
+    depends_on:
+      postgres:
+        condition: service_healthy
+      #migrate:
+        #condition: service_healthy
+    environment:
+      GREENLIGHT_DB_DSN: "postgresql://greenlight_2:greenlight_2@postgres:5432/greenlight_2?sslmode=disable"
+    restart: on-failure
+    networks:
+      - greenlight_net
   postgres:
-    image: postgres:15  # 推荐指定版本（如 13, 14, 15）
+    image: postgres:latest  # 推荐指定版本（如 13, 14, 15）
     container_name: greenlight_container
     environment:
       POSTGRES_USER: greenlight_2      # 自定义用户名
@@ -13,6 +27,32 @@ services:
     ports:
       - "5432:5432"  # 主机端口:容器端口
     restart: unless-stopped  # 容器退出时自动重启
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U greenlight_2 -d greenlight_2"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - greenlight_net
+
+
+  #migrate:
+    #image: migrate/migrate:latest
+    #depends_on:
+      #postgres:
+        #condition: service_healthy
+    #volumes:
+      #- ./migrations:/migrations
+    #environment:
+      #DB_DSN: "postgresql://greenlight_2:greenlight_2@postgres:5432/greenlight_2?sslmode=disable"
+    #command: ["-path=/migrations", "-database=postgresql://greenlight_2:greenlight_2@postgres:5432/greenlight_2?sslmode=disable", "up"]
+    #restart: on-failure
+    #networks:
+      #- greenlight_net
 
 volumes:
   postgres_data:  # 声明数据卷，避免容器删除后数据丢失
+
+networks:
+  greenlight_net:
+    driver: bridge

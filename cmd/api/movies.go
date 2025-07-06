@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -50,5 +51,89 @@ func (app *Application) ShowMovieHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-	fmt.Fprintf(w, "show the details of movie %d\n", id)
+	movie, err := app.Models.Movies.Get(int64(id))
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notfoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := readURLID(r)
+	if err != nil {
+		app.notfoundResponse(w, r)
+		return
+	}
+	movie, err := app.Models.Movies.Get(int64(id))
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notfoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	var input struct {
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:runtime"`
+		Genres  []string     `json:"genres"`
+	}
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	movie.Title = input.Title
+	movie.Year = input.Year
+	movie.Runtime = input.Runtime
+	movie.Generes = input.Genres
+
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	err = app.Models.Movies.Update(movie)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+func (app *Application) DeleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := readURLID(r)
+	if err != nil {
+		app.notfoundResponse(w, r)
+		return
+	}
+	err = app.Models.Movies.Delete(int64(id))
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notfoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"msg": "The movie has been success delete"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, nil)
+	}
 }
