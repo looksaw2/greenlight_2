@@ -54,6 +54,7 @@ func (app *Application) RunHTTP() {
 	r := app.NewRouter()
 	db, err := openDB(app.Config)
 	if err != nil {
+		app.Logger.Printf("Can't connect to the db")
 		app.Logger.Fatal(err)
 	}
 	app.Logger.Printf("connect to database ..............\n")
