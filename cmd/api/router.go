@@ -16,5 +16,7 @@ func (app *Application) NewRouter() *chi.Mux {
 	r.Get("/api/v1/movie/{id}", app.ShowMovieHandler)
 	r.Patch("/api/v1/movie/{id}", app.UpdateMovieHandler)
 	r.Delete("/api/v1/movie/{id}", app.DeleteMovieHandler)
+
+	r.Post("/api/v1/users", app.registerUserHandler)
 	return r
 }

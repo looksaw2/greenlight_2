@@ -15,6 +15,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/looksaw/greenlight_2/internal/data"
 	"github.com/looksaw/greenlight_2/internal/jsonlog"
+	"github.com/looksaw/greenlight_2/internal/mailer"
 )
 
 const VERSION = "1.0.0"
@@ -33,12 +34,20 @@ type Config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type Application struct {
 	Config Config
 	Logger *jsonlog.Logger
 	Models data.Models
+	mailer mailer.Mailer
 }
 
 func ApiInit() *Application {
@@ -52,11 +61,17 @@ func ApiInit() *Application {
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum request per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rtae limiter maximun burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "0abf276416b183", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "d8672aa2264bb5", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.alexedwards.net>", "SMTP sender")
 	flag.Parse()
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	app := Application{
 		Config: cfg,
 		Logger: logger,
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 	return &app
 }
