@@ -4,6 +4,9 @@ go 1.24.4
 
 require github.com/go-chi/chi/v5 v5.2.2
 
-require github.com/lib/pq v1.10.9
-
-require github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
+require (
+	github.com/lib/pq v1.10.9
+	golang.org/x/crypto v0.39.0
+	golang.org/x/text v0.26.0
+	golang.org/x/time v0.12.0
+)

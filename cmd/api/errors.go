@@ -3,7 +3,10 @@ package api
 import "net/http"
 
 func (app *Application) LogError(r *http.Request, err error) {
-	app.Logger.Print(err)
+	app.Logger.PrintError(err, map[string]string{
+		"request_method": r.Method,
+		"request_url":    r.URL.String(),
+	})
 }
 
 func (app *Application) errorResponse(w http.ResponseWriter,
@@ -48,4 +51,9 @@ func (app *Application) failedValidationResponse(w http.ResponseWriter, r *http.
 func (app *Application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
 	msg := "Unable to update the record due to the edit conflict , please try again"
 	app.errorResponse(w, r, http.StatusConflict, msg)
+}
+
+func (app *Application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
+	msg := "rate limit exceeded"
+	app.errorResponse(w, r, http.StatusTooManyRequests, msg)
 }

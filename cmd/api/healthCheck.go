@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 )
@@ -22,6 +23,9 @@ func (app *Application) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-	app.Logger.Printf("client ip :%s\n", client_ip)
-	app.Logger.Printf("visit is HealthCheck\n")
+	messageInfo1 := fmt.Sprintf("client ip :%s\n", client_ip)
+	messageInfo2 := fmt.Sprintf("visit is HealthCheck\n")
+	app.Logger.PrintInfo(messageInfo1, nil)
+	app.Logger.PrintInfo(messageInfo2, nil)
+
 }
